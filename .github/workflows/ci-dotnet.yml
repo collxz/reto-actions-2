@@ -22,9 +22,17 @@ jobs:
               uses: actions/setup-dotnet@v4
               with:
                 dotnet-version: '8.0.x'
-                
+
             - name: 3. Restaurar las dependencias del proyecto
               run: dotnet restore
 
             - name: 4. Compilar el proyecto
               run: dotnet build --no-restore
+
+            - name: 5. Prueba de inyección de credenciales
+              env:
+                MI_AMBIENTE: ${{ vars.ENTORNO_DESPLIEGUE }}
+                MI_PASSWORD: ${{ secrets.PASSWORD_DB_PROD }}
+              run: |
+                echo "Ejecutando pipeline en el entorno: $MI_AMBIENTE"
+                echo "La contraseña inyectada es: $MI_PASSWORD"
