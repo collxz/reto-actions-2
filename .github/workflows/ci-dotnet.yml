@@ -1,38 +1,33 @@
 
-
-name: CI .NET LV
+name: CI/CD .NET a Docker
 
 on:
     push:
-      branches:
-        - main
-    pull_request:
-      branches:
-        - main
+        branches: [ main ]
 
 jobs:
-    compilar-codigo:
+    construir-y-publicar:
         runs-on: ubuntu-latest
 
+        # Otorgamos permiso al robot para escribir en el almacen de paquetes
+        permissions:
+            packages: write
+            contents: read
+
         steps:
-            - name: 1. Descargar el código del repositorio
+            - name: 1. Descargar el código
               uses: actions/checkout@v4
-            
-            - name: 2. Configurar el entorno de .NET 8
-              uses: actions/setup-dotnet@v4
+
+            - name: 2. Iniciar sesion en GitHub Container Registry
+              uses: docker/login-action@v3
               with:
-                dotnet-version: '8.0.x'
+                registry: ghcr.io
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN}}
 
-            - name: 3. Restaurar las dependencias del proyecto
-              run: dotnet restore
-
-            - name: 4. Compilar el proyecto
-              run: dotnet build --no-restore
-
-            - name: 5. Prueba de inyección de credenciales
-              env:
-                MI_AMBIENTE: ${{ vars.ENTORNO_DESPLIEGUE }}
-                MI_PASSWORD: ${{ secrets.PASSWORD_DB_PROD }}
-              run: |
-                echo "Ejecutando pipeline en el entorno: $MI_AMBIENTE"
-                echo "La contraseña inyectada es: $MI_PASSWORD"
+            - name: 3. Constuir y subir imagen de Docker
+              uses: docker/build-push-action@v5
+              with:
+                context: .
+                push: true
+                tags: ghcr.io/${{ github.repository }}/api-pagos:latest
