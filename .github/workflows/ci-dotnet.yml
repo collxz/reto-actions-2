@@ -1,0 +1,30 @@
+
+
+name: CI .NET LV
+
+on:
+    push:
+      branches:
+        - main
+    pull_request:
+      branches:
+        - main
+
+jobs:
+    compilar-codigo:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: 1. Descargar el código del repositorio
+              uses: actions/checkout@v4
+            
+            - name: 2. Configurar el entorno de .NET 8
+              uses: actions/setup-dotnet@v4
+              with:
+                dotnet-version: '8.0.x'
+                
+            - name: 3. Restaurar las dependencias del proyecto
+              run: dotnet restore
+
+            - name: 4. Compilar el proyecto
+              run: dotnet build --no-restore
